@@ -4,6 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, DeleteView, U
 from .models import Blog, Category
 from . forms import BlogForm
 from django.urls import reverse_lazy
+from django.db.models import Q
 
 # Create your views here.
 
@@ -54,3 +55,77 @@ def create_done(request):
     category_list = Category.objects.all()  # 追加
     return render(request, 'blog/create_done.html', {
         'category_list': category_list})  # category_listを追加
+
+
+class BlogDetailView(DetailView):
+    model = Blog
+    template_name = 'blog/blog_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(BlogDetailView, self).get_context_data(**kwargs)
+        context['category_list'] = Category.objects.all()
+        return context
+
+
+class BlogDeleteView(DeleteView):
+
+    model = Blog
+    template_name = 'blog/blog_confirm_delete.html'
+    success_url = reverse_lazy('blog:delete_done')
+
+    def get_context_data(self, **kwargs):
+        context = super(BlogDeleteView, self).get_context_data(**kwargs)
+        context['category_list'] = Category.objects.all()
+        return context
+
+
+def delete_done(request):
+    category_list = Category.objects.all()
+    return render(request, 'blog/delete_done.html', {
+        'category_list': category_list})
+
+
+class CategoryView(ListView):
+    """カテゴリ名でフィルタ検索"""
+    model = Blog
+    template_name = 'blog/blog_list.html'
+
+    def get_queryset(self):
+        """カテゴリでの絞り込み"""
+        category_name = self.kwargs['category']
+        queryset = Blog.objects.filter(category__category_name=category_name)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(CategoryView, self).get_context_data(**kwargs)
+        context['category_list'] = Category.objects.all()
+        return context
+
+
+class SearchPostView(ListView):
+    model = Blog
+    template_name = 'blog/blog_list.html'
+
+    def get_queryset(self):
+        """
+        request.GETには GET リクエストのパラメータが含まれています。
+        request.GET.get('q', None)でqパラメータの値を取得し、値が
+        存在しない場合はNoneを取得します。
+        """
+        query = self.request.GET.get('q', None)
+
+        if query is not None:
+            qs = Blog.objects.filter(Q(title__icontains=query) |
+                                     Q(category__category_name__icontains=query))
+            return qs
+
+        else:
+            qs = Blog.objects.all()
+            return qs
+
+    def get_context_data(self, *args, **kwargs):
+        """クリックされたカテゴリを保持"""
+        # context = super().get_context_data(*args, **kwargs)
+        context = super(SearchPostView, self).get_context_data(**kwargs)
+        context['category_list'] = Category.objects.all()
+        return context
