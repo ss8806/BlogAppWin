@@ -44,13 +44,13 @@ class BlogCreateView(CreateView):
     success_url = reverse_lazy('blog:create_done')
 
     def get_context_data(self, **kwargs):
-
         context = super(BlogCreateView, self).get_context_data(**kwargs)
         context['category_list'] = Category.objects.all()
-        context['message_type'] = "create"
         return context
 
 
 def create_done(request):
-    # 登録処理が正常終了した場合に呼ばれる
-    return render(request, 'blog/create_done.html')
+    # 登録処理が正常終了した場合に呼ばれるテンプレートを指定
+    category_list = Category.objects.all()  # 追加
+    return render(request, 'blog/create_done.html', {
+        'category_list': category_list})  # category_listを追加
