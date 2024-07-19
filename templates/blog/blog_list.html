@@ -1,0 +1,24 @@
+{% extends './base.html' %}
+{% block contents %}
+<!-- wrap始まり -->
+<div id="wrap" class="clearfix">
+    <div class="content">
+        <div class="main">
+            <h1>記事一覧</h1>
+            <!-- ここから記事一覧-->
+            {% for item in object_list %}
+            <section>
+                <h1>{{ item.title }}</h1>
+                <ul>
+                    <li>
+                        <div class="title"><b>{{ item.category }}</b></div>
+                    </li>
+                    <p>{{ item.content }}</p>
+                </ul>
+            </section>
+            {% endfor %}
+            <!-- ここまで記事一覧-->
+        </div> <!-- end main -->
+    </div> <!-- end content-->
+</div> <!-- end wrap -->
+{% endblock %}
